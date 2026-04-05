@@ -1,4 +1,4 @@
-# CyberGym
+# RedVeil
 
 A cybersecurity-themed OpenEnv environment where AI agents perform real penetration testing against a live vulnerable web app. No simulations, no fake responses -- every SQL injection runs against a real SQLite database, every HTTP request hits a real Flask server, and every honeypot serves convincing fake data from a separate table.
 
@@ -46,7 +46,7 @@ pip install "openenv-core[core]>=0.2.2" flask requests openai
 **2. Start the OpenEnv server**
 
 ```bash
-uvicorn cyber_gym.server.app:app --host 0.0.0.0 --port 8000
+uvicorn redveil.server.app:app --host 0.0.0.0 --port 8000
 ```
 
 This starts the OpenEnv API on port 8000 and automatically launches the vulnerable Flask app on port 5000 internally.
@@ -80,8 +80,8 @@ python inference.py
 **4. Run with Docker**
 
 ```bash
-docker build -f cyber_gym/server/Dockerfile -t cyber-gym:latest cyber_gym/
-docker run -p 8000:8000 cyber-gym:latest
+docker build -f redveil/server/Dockerfile -t redveil:latest redveil/
+docker run -p 8000:8000 redveil:latest
 ```
 
 ## Tasks
@@ -108,7 +108,7 @@ docker run -p 8000:8000 cyber-gym:latest
 
 ```
 inference.py              # Baseline agent script (required at root)
-cyber_gym/
+redveil/
   models.py               # Pydantic models for actions/observations
   tasks.py                # 4 task definitions with randomized endpoints
   noise.py                # Nmap-modeled noise + deception engine
@@ -119,6 +119,6 @@ cyber_gym/
   pyproject.toml           # Dependencies
   server/
     app.py                # FastAPI server via create_app()
-    cyber_gym_environment.py  # Core step()/reset()/state() logic
+    redveil_environment.py  # Core step()/reset()/state() logic
     Dockerfile            # Container for HF Spaces deployment
 ```

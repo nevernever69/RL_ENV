@@ -1,4 +1,4 @@
-"""Grader system for CyberGym tasks.
+"""Grader system for RedVeil tasks.
 
 Each grader checks the environment's internal game state and returns
 a score from 0.0 to 1.0 based on milestone progression.
@@ -13,7 +13,7 @@ def grade_task(game_state: dict) -> float:
     """Grade a completed task based on its game state.
 
     Args:
-        game_state: Dictionary from CyberGymEnvironment.get_game_state()
+        game_state: Dictionary from RedVeilEnvironment.get_game_state()
 
     Returns:
         Score from 0.0 to 1.0

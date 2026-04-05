@@ -1,10 +1,10 @@
-# CyberGym: An Uncertainty-Aware Tool-Use Environment for Training Agentic AI
+# RedVeil: An Uncertainty-Aware Tool-Use Environment for Training Agentic AI
 
 A realistic OpenEnv environment where AI agents must make decisions under uncertainty, use tools effectively, and avoid deceptive signals -- mirroring real-world cybersecurity scenarios.
 
-## What Makes CyberGym Different
+## What Makes RedVeil Different
 
-| Feature | Traditional RL Envs | CyberGym |
+| Feature | Traditional RL Envs | RedVeil |
 |---------|-------------------|----------|
 | Vulnerabilities | Simulated / fake | **Real** SQLi against live SQLite DB |
 | HTTP Requests | Mocked responses | **Real** HTTP to a genuine Flask app |
@@ -17,7 +17,7 @@ A realistic OpenEnv environment where AI agents must make decisions under uncert
 
 ## Core Design: Nothing is Faked
 
-CyberGym runs a **real vulnerable Flask application** with genuine SQL injection vulnerabilities against an in-memory SQLite database. When the agent injects a UNION payload, it executes real SQL. When it extracts credentials, they come from actual database rows. Honeypot endpoints query a separate `fake_users` table with real SQL -- the fake credentials look identical to real ones.
+RedVeil runs a **real vulnerable Flask application** with genuine SQL injection vulnerabilities against an in-memory SQLite database. When the agent injects a UNION payload, it executes real SQL. When it extracts credentials, they come from actual database rows. Honeypot endpoints query a separate `fake_users` table with real SQL -- the fake credentials look identical to real ones.
 
 Endpoint paths are **randomized per episode** (e.g., `/svc/a7f2`, `/int/k9m1`) so agents cannot memorize routes between runs. Endpoints are **hidden until discovered** -- the agent must scan ports first to reveal what endpoints exist on each port.
 
@@ -155,15 +155,15 @@ pip install "openenv-core[core]>=0.2.2" flask requests
 ### Run locally (without Docker)
 
 ```bash
-cd cyber_gym
+cd redveil
 uvicorn server.app:app --host 0.0.0.0 --port 8000
 ```
 
 ### Run with Docker
 
 ```bash
-docker build -f cyber_gym/server/Dockerfile -t cyber-gym:latest cyber_gym/
-docker run -p 8000:8000 cyber-gym:latest
+docker build -f redveil/server/Dockerfile -t redveil:latest redveil/
+docker run -p 8000:8000 redveil:latest
 ```
 
 ### Run inference
@@ -185,20 +185,20 @@ python inference.py
 ## Architecture
 
 ```
-cyber_gym/
+redveil/
 ├── __init__.py          # Package exports
-├── models.py            # CyberGymAction, CyberGymObservation (Pydantic)
+├── models.py            # RedVeilAction, RedVeilObservation (Pydantic)
 ├── tasks.py             # 4 task configs with randomized endpoints
 ├── noise.py             # Noise engine (nmap-modeled) + Deception engine (real HTTP)
 ├── grader.py            # Per-task graders returning 0.0-1.0
 ├── vulnerable_app.py    # Real Flask app with genuine SQL injection vulnerabilities
-├── client.py            # CyberGymEnv(EnvClient) for remote usage
+├── client.py            # RedVeilEnv(EnvClient) for remote usage
 ├── openenv.yaml         # OpenEnv manifest
 ├── pyproject.toml       # Dependencies
 ├── README.md            # This file
 └── server/
     ├── __init__.py
-    ├── cyber_gym_environment.py  # Core Environment(step/reset/state)
+    ├── redveil_environment.py  # Core Environment(step/reset/state)
     ├── app.py                    # FastAPI app via create_app()
     └── Dockerfile                # Container deployment
 inference.py             # Baseline LLM agent script (project root)
@@ -206,7 +206,7 @@ inference.py             # Baseline LLM agent script (project root)
 
 ## Design Philosophy
 
-CyberGym is a **benchmark for agentic AI in uncertain, adversarial environments with real tool interaction**. It tests whether LLM agents can:
+RedVeil is a **benchmark for agentic AI in uncertain, adversarial environments with real tool interaction**. It tests whether LLM agents can:
 
 1. **Discover before acting** -- endpoints are hidden until ports are scanned, paths are randomized
 2. **Reason under uncertainty** -- scan results include confidence levels modeled on real nmap behavior

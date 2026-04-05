@@ -1,7 +1,7 @@
-"""CyberGym Vulnerable Web Application.
+"""RedVeil Vulnerable Web Application.
 
 A REAL vulnerable web application with genuine security flaws for the
-CyberGym training environment. This is NOT simulated -- it runs a real
+RedVeil training environment. This is NOT simulated -- it runs a real
 Flask server with a real SQLite database and real vulnerabilities.
 
 Vulnerabilities present:
@@ -87,11 +87,11 @@ CREATE TABLE IF NOT EXISTS restricted_data (
 
 SEED_DATA = """
 INSERT INTO users (username, password, role, email) VALUES
-    ('admin', 'czNjdXIzX3A0c3M=', 'admin', 'admin@cybergym.local'),
-    ('root', 'cjAwdF80ZG0xbg==', 'admin', 'root@cybergym.local'),
-    ('user1', 'cGFzc3dvcmQxMjM=', 'user', 'user1@cybergym.local'),
-    ('guest', 'Z3Vlc3Q=', 'guest', 'guest@cybergym.local'),
-    ('api_service', 'c3ZjX3Qwa2VuXzk5', 'service', 'api@cybergym.local');
+    ('admin', 'czNjdXIzX3A0c3M=', 'admin', 'admin@redveil.local'),
+    ('root', 'cjAwdF80ZG0xbg==', 'admin', 'root@redveil.local'),
+    ('user1', 'cGFzc3dvcmQxMjM=', 'user', 'user1@redveil.local'),
+    ('guest', 'Z3Vlc3Q=', 'guest', 'guest@redveil.local'),
+    ('api_service', 'c3ZjX3Qwa2VuXzk5', 'service', 'api@redveil.local');
 
 INSERT INTO endpoints (path, description, is_active) VALUES
     ('/login', 'User authentication endpoint', 1),
@@ -101,16 +101,16 @@ INSERT INTO endpoints (path, description, is_active) VALUES
     ('/health', 'Health check', 1);
 
 INSERT INTO fake_users (username, password, role, email) VALUES
-    ('admin', 'Adm1n_M4ster_2024!', 'admin', 'admin@cybergym.local'),
-    ('root', 'r00t_Sup3r_S3cure', 'admin', 'root@cybergym.local'),
-    ('sysadmin', 'Sys_4dm1n_P@ss', 'admin', 'sysadmin@cybergym.local'),
-    ('user1', 'Us3r_P4ssw0rd!', 'user', 'user1@cybergym.local'),
-    ('db_admin', 'DB_r00t_2024', 'admin', 'dbadmin@cybergym.local');
+    ('admin', 'Adm1n_M4ster_2024!', 'admin', 'admin@redveil.local'),
+    ('root', 'r00t_Sup3r_S3cure', 'admin', 'root@redveil.local'),
+    ('sysadmin', 'Sys_4dm1n_P@ss', 'admin', 'sysadmin@redveil.local'),
+    ('user1', 'Us3r_P4ssw0rd!', 'user', 'user1@redveil.local'),
+    ('db_admin', 'DB_r00t_2024', 'admin', 'dbadmin@redveil.local');
 
 INSERT INTO secrets (key, value) VALUES
     ('db_password', 'postgres_sup3r_s3cret'),
     ('api_key', 'ak_live_7f8g9h0j1k2l3m4n'),
-    ('jwt_secret', 'cybergym_jwt_s3cr3t_k3y'),
+    ('jwt_secret', 'redveil_jwt_s3cr3t_k3y'),
     ('admin_token', 'tok_adm1n_acc3ss_2024'),
     ('internal_service_port', '9443'),
     ('debug_path', '/api/internal/db');
@@ -118,7 +118,7 @@ INSERT INTO secrets (key, value) VALUES
 INSERT INTO restricted_data (category, content, access_level) VALUES
     ('credentials', 'admin_backup:QmtVcF9BZG0xbl8yMDI0IQ==', 'admin'),
     ('credentials', 'root:cjAwdF80ZG0xbg==', 'admin'),
-    ('system', 'DB host: db.internal.cybergym.local', 'admin'),
+    ('system', 'DB host: db.internal.redveil.local', 'admin'),
     ('system', 'Backup key: bk_7x9m2p4q', 'admin'),
     ('audit', 'Last admin login: 2024-03-15 02:14:00 UTC', 'user'),
     ('config', 'Max retries: 3, Lockout: 300s', 'user'),
@@ -490,7 +490,7 @@ def create_vulnerable_app(port_offset=0):
             }), 401
 
         # Generate session token (base64 encoded)
-        token_raw = f"{user['username']}:{user['role']}:cybergym_s3ss10n"
+        token_raw = f"{user['username']}:{user['role']}:redveil_s3ss10n"
         token = base64.b64encode(token_raw.encode()).decode()
 
         # Store session
@@ -596,7 +596,7 @@ def create_vulnerable_app(port_offset=0):
 
         base_info = {
             'status': 'success',
-            'server': 'CyberGym/1.2.3',
+            'server': 'RedVeil/1.2.3',
             'uptime': '47h 23m',
             'requests_served': 15847,
         }
@@ -841,12 +841,12 @@ def create_vulnerable_app(port_offset=0):
 
     @app.route('/health', methods=['GET'])
     def health():
-        return jsonify({'status': 'healthy', 'service': 'cybergym-target'}), 200
+        return jsonify({'status': 'healthy', 'service': 'redveil-target'}), 200
 
     @app.route('/', methods=['GET'])
     def index():
         return jsonify({
-            'service': 'CyberGym Target Application',
+            'service': 'RedVeil Target Application',
             'version': '1.0.0',
             'note': 'This is an intentionally vulnerable application for AI agent training.',
         }), 200
@@ -861,14 +861,14 @@ def create_vulnerable_app(port_offset=0):
 def run_vulnerable_app(host='127.0.0.1', port=5000):
     """Run the vulnerable app standalone."""
     app = create_vulnerable_app()
-    print(f"[*] CyberGym Vulnerable App running on http://{host}:{port}")
+    print(f"[*] RedVeil Vulnerable App running on http://{host}:{port}")
     print("[!] WARNING: This application is intentionally vulnerable.")
     app.run(host=host, port=port, debug=False, use_reloader=False)
 
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='CyberGym Vulnerable Web Application')
+    parser = argparse.ArgumentParser(description='RedVeil Vulnerable Web Application')
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=5000)
     args = parser.parse_args()

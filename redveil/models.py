@@ -1,4 +1,4 @@
-"""Data models for the CyberGym Environment."""
+"""Data models for the RedVeil Environment."""
 
 from enum import Enum
 from typing import Dict, List, Optional
@@ -17,8 +17,8 @@ class ActionType(str, Enum):
     FETCH_CONFIG = "fetch_config"
 
 
-class CyberGymAction(Action):
-    """Action for the CyberGym environment.
+class RedVeilAction(Action):
+    """Action for the RedVeil environment.
 
     The agent chooses a tool and a target to act on.
     """
@@ -32,8 +32,8 @@ class EndpointInfo(Dict):
     pass
 
 
-class CyberGymObservation(Observation):
-    """Observation from the CyberGym environment."""
+class RedVeilObservation(Observation):
+    """Observation from the RedVeil environment."""
 
     observation_text: str = Field(default="", description="Human-readable observation text (LLM-compatible)")
     budget_remaining: int = Field(default=0, description="Number of actions the agent can still take")

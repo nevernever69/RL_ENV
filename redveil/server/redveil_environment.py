@@ -1,4 +1,4 @@
-"""CyberGym Environment Implementation.
+"""RedVeil Environment Implementation.
 
 A cybersecurity-themed RL environment where agents make decisions under
 uncertainty, use tools effectively, and avoid deceptive signals.
@@ -21,13 +21,13 @@ from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
 try:
-    from ..models import ActionType, CyberGymAction, CyberGymObservation
+    from ..models import ActionType, RedVeilAction, RedVeilObservation
     from ..noise import DeceptionEngine, NoiseEngine
     from ..tasks import ALL_TASKS, TaskConfig
     from ..grader import grade_task
     from ..vulnerable_app import create_vulnerable_app
 except (ImportError, ModuleNotFoundError):
-    from models import ActionType, CyberGymAction, CyberGymObservation
+    from models import ActionType, RedVeilAction, RedVeilObservation
     from noise import DeceptionEngine, NoiseEngine
     from tasks import ALL_TASKS, TaskConfig
     from grader import grade_task
@@ -81,8 +81,8 @@ def _ensure_vuln_app_running():
             time.sleep(0.1)
 
 
-class CyberGymEnvironment(Environment):
-    """CyberGym: Decision-making under uncertainty with real tool interaction.
+class RedVeilEnvironment(Environment):
+    """RedVeil: Decision-making under uncertainty with real tool interaction.
 
     Endpoints are HIDDEN until the agent scans the port they live on.
     Paths are randomized per episode. Real HTTP requests are sent to a
@@ -129,7 +129,7 @@ class CyberGymEnvironment(Environment):
         seed: Optional[int] = None,
         episode_id: Optional[str] = None,
         **kwargs: Any,
-    ) -> CyberGymObservation:
+    ) -> RedVeilObservation:
         """Reset the environment with a specific task."""
         task_id = kwargs.get("task_id", "easy_recon")
         actual_seed = seed if seed is not None else 42
@@ -205,7 +205,7 @@ class CyberGymEnvironment(Environment):
             f"- fetch_config <target>: Retrieve config files (robots.txt, config) to discover hidden paths"
         )
 
-        return CyberGymObservation(
+        return RedVeilObservation(
             observation_text=intro,
             budget_remaining=self._budget_remaining,
             task_id=self._task.task_id,
@@ -217,10 +217,10 @@ class CyberGymEnvironment(Environment):
 
     def step(
         self,
-        action: CyberGymAction,
+        action: RedVeilAction,
         timeout_s: Optional[float] = None,
         **kwargs: Any,
-    ) -> CyberGymObservation:
+    ) -> RedVeilObservation:
         """Execute an action in the environment."""
         self._state.step_count += 1
 
@@ -574,7 +574,7 @@ class CyberGymEnvironment(Environment):
 
         return f"[CONFIG RESULT] Unknown config target: {target}. Try: robots.txt, config"
 
-    def _make_observation(self, obs_text: str, done: bool) -> CyberGymObservation:
+    def _make_observation(self, obs_text: str, done: bool) -> RedVeilObservation:
         milestones = self._get_reached_milestones()
         reward = self._compute_reward()
 
@@ -590,7 +590,7 @@ class CyberGymEnvironment(Environment):
 
         full_text = obs_text + budget_info
 
-        return CyberGymObservation(
+        return RedVeilObservation(
             observation_text=full_text,
             budget_remaining=self._budget_remaining,
             task_id=self._task.task_id,

@@ -1,4 +1,4 @@
-"""Noise and Deception Engine for CyberGym.
+"""Noise and Deception Engine for RedVeil.
 
 Noise modeling is based on real network scan behavior:
 - TCP SYN scan timing variance (nmap-style)

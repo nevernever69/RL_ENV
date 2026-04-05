@@ -3,9 +3,9 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openenv-cyber-gym"
+name = "openenv-redveil"
 version = "0.1.0"
-description = "CyberGym: An uncertainty-aware tool-use environment for training agentic AI"
+description = "RedVeil: An uncertainty-aware tool-use environment for training agentic AI"
 requires-python = ">=3.10"
 dependencies = [
     "openenv-core[core]>=0.2.2",
@@ -20,9 +20,9 @@ dev = [
 ]
 
 [project.scripts]
-server = "cyber_gym.server.app:main"
+server = "redveil.server.app:main"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["cyber_gym", "cyber_gym.server"]
-package-dir = { "cyber_gym" = ".", "cyber_gym.server" = "server" }
+packages = ["redveil", "redveil.server"]
+package-dir = { "redveil" = ".", "redveil.server" = "server" }

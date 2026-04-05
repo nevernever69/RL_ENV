@@ -1,4 +1,4 @@
-"""Task definitions for CyberGym.
+"""Task definitions for RedVeil.
 
 Each task defines a scenario with ports, endpoints, honeypots, noise levels,
 and budget. Endpoint paths are randomized per episode to prevent memorization.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""CyberGym Inference Script.
+"""RedVeil Inference Script.
 
-Runs an LLM agent through all 3 CyberGym tasks and reports scores.
+Runs an LLM agent through all 3 RedVeil tasks and reports scores.
 Uses OpenAI-compatible API via environment variables.
 
 Required environment variables:
@@ -28,9 +28,9 @@ from openai import OpenAI
 
 # Direct imports for when running from project root
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cyber_gym.models import ActionType, CyberGymAction, CyberGymObservation
-from cyber_gym.server.cyber_gym_environment import CyberGymEnvironment
-from cyber_gym.grader import grade_task
+from redveil.models import ActionType, RedVeilAction, RedVeilObservation
+from redveil.server.redveil_environment import RedVeilEnvironment
+from redveil.grader import grade_task
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -42,7 +42,7 @@ API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY") or os.getenv("OPENAI_API
 
 TASKS = ["easy_recon", "medium_deception", "hard_chain", "expert_chain"]
 
-SYSTEM_PROMPT = """You are a cybersecurity agent operating in the CyberGym environment.
+SYSTEM_PROMPT = """You are a cybersecurity agent operating in the RedVeil environment.
 You must analyze targets, use tools strategically, and make decisions under uncertainty.
 
 Available actions (respond with EXACTLY this JSON format):
@@ -75,8 +75,8 @@ Respond with ONLY the JSON action. No explanation."""
 # Helpers
 # ---------------------------------------------------------------------------
 
-def parse_action(text: str) -> CyberGymAction:
-    """Parse LLM response into a CyberGymAction."""
+def parse_action(text: str) -> RedVeilAction:
+    """Parse LLM response into a RedVeilAction."""
     text = text.strip()
 
     # Try to extract JSON from the response
@@ -99,7 +99,7 @@ def parse_action(text: str) -> CyberGymAction:
 
     try:
         data = json.loads(text)
-        return CyberGymAction(
+        return RedVeilAction(
             action_type=ActionType(data["action_type"]),
             target=str(data["target"]),
             payload=data.get("payload"),
@@ -110,7 +110,7 @@ def parse_action(text: str) -> CyberGymAction:
         parts = text.split(None, 1)
         if len(parts) == 2:
             try:
-                return CyberGymAction(
+                return RedVeilAction(
                     action_type=ActionType(parts[0].lower()),
                     target=parts[1],
                 )
@@ -118,10 +118,10 @@ def parse_action(text: str) -> CyberGymAction:
                 pass
 
         # Last resort: scan a common port
-        return CyberGymAction(action_type=ActionType.SCAN, target="80")
+        return RedVeilAction(action_type=ActionType.SCAN, target="80")
 
 
-def run_task(env: CyberGymEnvironment, client: OpenAI, task_id: str) -> dict:
+def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     """Run a single task with the LLM agent."""
     # Reset environment with task
     obs = env.reset(task_id=task_id)
@@ -208,7 +208,7 @@ def main():
 
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "dummy")
 
-    env = CyberGymEnvironment()
+    env = RedVeilEnvironment()
 
     results = []
     for task_id in TASKS:

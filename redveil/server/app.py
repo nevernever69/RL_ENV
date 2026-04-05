@@ -1,4 +1,4 @@
-"""FastAPI application for the CyberGym Environment."""
+"""FastAPI application for the RedVeil Environment."""
 
 try:
     from openenv.core.env_server.http_server import create_app
@@ -8,27 +8,27 @@ except Exception as e:
     ) from e
 
 try:
-    from ..models import CyberGymAction, CyberGymObservation
-    from .cyber_gym_environment import CyberGymEnvironment
+    from ..models import RedVeilAction, RedVeilObservation
+    from .redveil_environment import RedVeilEnvironment
 except (ModuleNotFoundError, ImportError):
-    from models import CyberGymAction, CyberGymObservation
-    from server.cyber_gym_environment import CyberGymEnvironment
+    from models import RedVeilAction, RedVeilObservation
+    from server.redveil_environment import RedVeilEnvironment
 
 
 # Singleton: OpenEnv calls the factory on every request, so we return
 # the same instance to preserve state across reset() -> step() calls.
-_singleton_env = CyberGymEnvironment()
+_singleton_env = RedVeilEnvironment()
 
 
-def _env_factory() -> CyberGymEnvironment:
+def _env_factory() -> RedVeilEnvironment:
     return _singleton_env
 
 
 app = create_app(
     _env_factory,
-    CyberGymAction,
-    CyberGymObservation,
-    env_name="cyber_gym",
+    RedVeilAction,
+    RedVeilObservation,
+    env_name="redveil",
     max_concurrent_envs=4,
 )
 
