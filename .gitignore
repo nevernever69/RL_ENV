@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.openai
+*.egg-info/
+dist/
+build/
+.claude/
+*.pdf
