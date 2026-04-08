@@ -8,11 +8,11 @@ except Exception as e:
     ) from e
 
 try:
+    from redveil.models import RedVeilAction, RedVeilObservation
+    from redveil.server.redveil_environment import RedVeilEnvironment
+except (ModuleNotFoundError, ImportError):
     from ..models import RedVeilAction, RedVeilObservation
     from .redveil_environment import RedVeilEnvironment
-except (ModuleNotFoundError, ImportError):
-    from models import RedVeilAction, RedVeilObservation
-    from server.redveil_environment import RedVeilEnvironment
 
 
 # Singleton: OpenEnv calls the factory on every request, so we return
