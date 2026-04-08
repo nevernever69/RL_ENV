@@ -20,10 +20,6 @@ from uuid import uuid4
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-import sys as _sys
-import os as _os
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-
 try:
     from ..models import ActionType, RedVeilAction, RedVeilObservation
     from ..noise import DeceptionEngine, NoiseEngine
@@ -31,11 +27,11 @@ try:
     from ..grader import grade_task
     from ..vulnerable_app import create_vulnerable_app
 except (ImportError, ModuleNotFoundError):
-    from redveil.models import ActionType, RedVeilAction, RedVeilObservation
-    from redveil.noise import DeceptionEngine, NoiseEngine
-    from redveil.tasks import ALL_TASKS, TaskConfig
-    from redveil.grader import grade_task
-    from redveil.vulnerable_app import create_vulnerable_app
+    from models import ActionType, RedVeilAction, RedVeilObservation
+    from noise import DeceptionEngine, NoiseEngine
+    from tasks import ALL_TASKS, TaskConfig
+    from grader import grade_task
+    from vulnerable_app import create_vulnerable_app
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +212,7 @@ class RedVeilEnvironment(Environment):
             task_description=self._task.description,
             milestones_reached=[],
             done=False,
-            reward=0.0,
+            reward=0.01,
         )
 
     def step(
@@ -661,15 +657,15 @@ class RedVeilEnvironment(Environment):
     def _compute_reward(self) -> float:
         milestones = self._get_reached_milestones()
         if not milestones or not self._task:
-            return 0.0
+            return 0.01
 
-        reward = 0.0
+        reward = 0.01
         milestone_rewards = {name: val for name, val in self._task.milestones}
         for m in milestones:
             if m in milestone_rewards:
                 reward = max(reward, milestone_rewards[m])
 
-        return round(reward, 2)
+        return max(0.01, min(0.99, round(reward, 2)))
 
     @property
     def state(self) -> State:

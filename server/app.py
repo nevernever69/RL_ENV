@@ -1,11 +1,5 @@
 """FastAPI application for the RedVeil Environment."""
 
-import sys
-import os
-
-# Ensure project root is on path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 try:
     from openenv.core.env_server.http_server import create_app
 except Exception as e:
@@ -13,8 +7,12 @@ except Exception as e:
         "openenv is required. Install with: pip install openenv-core[core]"
     ) from e
 
-from redveil.models import RedVeilAction, RedVeilObservation
-from redveil.server.redveil_environment import RedVeilEnvironment
+try:
+    from ..models import RedVeilAction, RedVeilObservation
+    from .redveil_environment import RedVeilEnvironment
+except (ModuleNotFoundError, ImportError):
+    from models import RedVeilAction, RedVeilObservation
+    from server.redveil_environment import RedVeilEnvironment
 
 
 # Singleton: OpenEnv calls the factory on every request, so we return
@@ -41,4 +39,8 @@ def main(host: str = "0.0.0.0", port: int = 8000):
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=8000)
+    args = parser.parse_args()
+    main(port=args.port)
