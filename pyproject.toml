@@ -25,3 +25,4 @@ server = "redveil.server.app:main"
 [tool.setuptools]
 include-package-data = true
 packages = ["redveil", "redveil.server"]
+package-dir = { "redveil" = ".", "redveil.server" = "server" }
