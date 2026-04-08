@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """RedVeil Inference Script.
 
-Runs an LLM agent through all 3 RedVeil tasks and reports scores.
+Runs an LLM agent through all RedVeil tasks and reports scores.
 Uses OpenAI-compatible API via environment variables.
 
 Required environment variables:
@@ -10,8 +10,8 @@ Required environment variables:
     HF_TOKEN      - Your Hugging Face / API key
 
 Usage:
-    export API_BASE_URL="https://router.huggingface.co/v1"
-    export MODEL_NAME="openai/gpt-oss-120b:novita"
+    export API_BASE_URL="https://api.openai.com/v1"
+    export MODEL_NAME="gpt-4o-mini"
     export HF_TOKEN="your_token_here"
     python inference.py
 """
@@ -22,13 +22,13 @@ import json
 import os
 import sys
 import time
-from typing import List
+from typing import List, Optional
 
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # dotenv not installed, use env vars directly
+    pass
 
 from openai import OpenAI
 
@@ -46,6 +46,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY") or os.getenv("OPENAI_API_KEY", "")
 
+BENCHMARK = "redveil"
 TASKS = ["easy_recon", "medium_deception", "hard_chain", "expert_chain"]
 
 SYSTEM_PROMPT = """You are a cybersecurity agent operating in the RedVeil environment.
@@ -78,6 +79,31 @@ Respond with ONLY the JSON action. No explanation."""
 
 
 # ---------------------------------------------------------------------------
+# Structured logging (official format)
+# ---------------------------------------------------------------------------
+
+def log_start(task: str, env: str, model: str) -> None:
+    print(f"[START] task={task} env={env} model={model}", flush=True)
+
+
+def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
+    error_val = error if error else "null"
+    done_val = str(done).lower()
+    print(
+        f"[STEP] step={step} action={action} reward={reward:.2f} done={done_val} error={error_val}",
+        flush=True,
+    )
+
+
+def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    print(
+        f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}",
+        flush=True,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -85,8 +111,7 @@ def parse_action(text: str) -> RedVeilAction:
     """Parse LLM response into a RedVeilAction."""
     text = text.strip()
 
-    # Try to extract JSON from the response
-    # Handle cases where LLM wraps in code blocks
+    # Handle code blocks
     if "```" in text:
         parts = text.split("```")
         for part in parts:
@@ -97,7 +122,7 @@ def parse_action(text: str) -> RedVeilAction:
                 text = part
                 break
 
-    # Find JSON object in the text
+    # Find JSON object
     start = text.find("{")
     end = text.rfind("}") + 1
     if start >= 0 and end > start:
@@ -111,8 +136,6 @@ def parse_action(text: str) -> RedVeilAction:
             payload=data.get("payload"),
         )
     except (json.JSONDecodeError, KeyError, ValueError):
-        # Fallback: try to parse as simple text
-        # e.g. "scan 80" or "fuzz /api/users"
         parts = text.split(None, 1)
         if len(parts) == 2:
             try:
@@ -122,18 +145,21 @@ def parse_action(text: str) -> RedVeilAction:
                 )
             except ValueError:
                 pass
-
-        # Last resort: scan a common port
         return RedVeilAction(action_type=ActionType.SCAN, target="80")
+
+
+def format_action(action: RedVeilAction) -> str:
+    """Format action as a readable string for logging."""
+    if action.payload:
+        return f"{action.action_type.value}({action.target},{action.payload})"
+    return f"{action.action_type.value}({action.target})"
 
 
 def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     """Run a single task with the LLM agent."""
-    # Reset environment with task
     obs = env.reset(task_id=task_id)
 
-    print(f"[START] task_id={task_id} | budget={obs.budget_remaining}")
-    sys.stdout.flush()
+    log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
 
     history = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -141,8 +167,11 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     ]
 
     step_num = 0
+    rewards: List[float] = []
+
     while not obs.done:
         step_num += 1
+        error_msg = None
 
         # Query LLM
         try:
@@ -155,23 +184,26 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
             raw_output = response.choices[0].message.content.strip()
         except Exception as e:
             raw_output = '{"action_type": "scan", "target": "80"}'
-            print(f"[STEP] step={step_num} | action=scan | target=80 | error={str(e)[:100]}")
-            sys.stdout.flush()
+            error_msg = str(e)[:100]
 
         # Parse action
         action = parse_action(raw_output)
 
-        # Log step
-        print(
-            f"[STEP] step={step_num} | "
-            f"action={action.action_type.value} | "
-            f"target={action.target} | "
-            f"budget_before={obs.budget_remaining}"
-        )
-        sys.stdout.flush()
-
         # Execute action
         obs = env.step(action)
+
+        # Track reward
+        reward = obs.reward if obs.reward is not None else 0.0
+        rewards.append(reward)
+
+        # Log step
+        log_step(
+            step=step_num,
+            action=format_action(action),
+            reward=reward,
+            done=obs.done,
+            error=error_msg,
+        )
 
         # Update conversation history
         history.append({"role": "assistant", "content": raw_output})
@@ -187,20 +219,15 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     # Get final score
     game_state = env.get_game_state()
     score = grade_task(game_state)
+    score = min(max(score, 0.0), 1.0)
+    success = score > 0.0
 
-    print(
-        f"[END] task_id={task_id} | "
-        f"score={score} | "
-        f"steps={step_num} | "
-        f"milestones={','.join(game_state.get('milestones', []))}"
-    )
-    sys.stdout.flush()
+    log_end(success=success, steps=step_num, score=score, rewards=rewards)
 
     return {
         "task_id": task_id,
         "score": score,
         "steps": step_num,
-        "milestones": game_state.get("milestones", []),
     }
 
 
@@ -218,25 +245,19 @@ def main():
 
     results = []
     for task_id in TASKS:
-        print(f"\n{'='*60}")
-        print(f"Running task: {task_id}")
-        print(f"{'='*60}")
-        sys.stdout.flush()
-
         result = run_task(env, client, task_id)
         results.append(result)
 
     # Summary
-    print(f"\n{'='*60}")
-    print("SUMMARY")
-    print(f"{'='*60}")
+    print(f"\n{'='*60}", flush=True)
+    print("SUMMARY", flush=True)
+    print(f"{'='*60}", flush=True)
     total_score = 0
     for r in results:
-        print(f"  {r['task_id']}: score={r['score']} steps={r['steps']} milestones={r['milestones']}")
+        print(f"  {r['task_id']}: score={r['score']:.2f} steps={r['steps']}", flush=True)
         total_score += r["score"]
     avg_score = total_score / len(results) if results else 0
-    print(f"\n  Average score: {avg_score:.2f}")
-    sys.stdout.flush()
+    print(f"\n  Average score: {avg_score:.2f}", flush=True)
 
 
 if __name__ == "__main__":
