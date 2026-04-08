@@ -20,6 +20,10 @@ from uuid import uuid4
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
+import sys as _sys
+import os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
 try:
     from ..models import ActionType, RedVeilAction, RedVeilObservation
     from ..noise import DeceptionEngine, NoiseEngine
@@ -27,11 +31,11 @@ try:
     from ..grader import grade_task
     from ..vulnerable_app import create_vulnerable_app
 except (ImportError, ModuleNotFoundError):
-    from models import ActionType, RedVeilAction, RedVeilObservation
-    from noise import DeceptionEngine, NoiseEngine
-    from tasks import ALL_TASKS, TaskConfig
-    from grader import grade_task
-    from vulnerable_app import create_vulnerable_app
+    from redveil.models import ActionType, RedVeilAction, RedVeilObservation
+    from redveil.noise import DeceptionEngine, NoiseEngine
+    from redveil.tasks import ALL_TASKS, TaskConfig
+    from redveil.grader import grade_task
+    from redveil.vulnerable_app import create_vulnerable_app
 
 
 # ---------------------------------------------------------------------------
