@@ -1,12 +1,21 @@
 """Grader system for RedVeil tasks.
 
 Each grader checks the environment's internal game state and returns
-a score from 0.0 to 1.0 based on milestone progression.
+a score strictly between 0 and 1 (exclusive) based on milestone progression.
 
 Honeypot penalties reduce score. Efficiency bonuses reward clean play.
 """
 
 from .tasks import ALL_TASKS
+
+# Validator requires scores strictly in (0, 1) — never exactly 0.0 or 1.0
+_SCORE_MIN = 0.01
+_SCORE_MAX = 0.99
+
+
+def _clamp(score: float) -> float:
+    """Clamp score to strictly (0, 1)."""
+    return max(_SCORE_MIN, min(_SCORE_MAX, round(score, 2)))
 
 
 def grade_task(game_state: dict) -> float:
@@ -16,7 +25,7 @@ def grade_task(game_state: dict) -> float:
         game_state: Dictionary from RedVeilEnvironment.get_game_state()
 
     Returns:
-        Score from 0.0 to 1.0
+        Score strictly between 0 and 1 (exclusive)
     """
     task_id = game_state.get("task_id")
     if task_id == "easy_recon":
@@ -27,7 +36,7 @@ def grade_task(game_state: dict) -> float:
         return grade_hard(game_state)
     elif task_id == "expert_chain":
         return grade_expert(game_state)
-    return 0.0
+    return _clamp(0.0)
 
 
 def _honeypot_penalty(state: dict) -> float:
@@ -57,18 +66,18 @@ def grade_easy(state: dict) -> float:
     false_positives = len(fake_ports)
 
     if len(correct) >= 3 and false_positives == 0:
-        return 1.0
+        return _clamp(0.99)
     elif len(correct) >= 2:
         score = 0.6
         score -= false_positives * 0.15
-        return max(0.1, round(score, 2))
+        return _clamp(score)
     elif len(correct) >= 1:
         score = 0.3
         score -= false_positives * 0.15
-        return max(0.1, round(score, 2))
+        return _clamp(score)
     elif scanned:
-        return 0.1
-    return 0.0
+        return _clamp(0.1)
+    return _clamp(0.0)
 
 
 def grade_medium(state: dict) -> float:
@@ -90,14 +99,14 @@ def grade_medium(state: dict) -> float:
     penalty = _honeypot_penalty(state)
 
     if exploit_success and flagged_honeypots:
-        return max(0.15, round(1.0 - penalty, 2))
+        return _clamp(0.99 - penalty)
     elif exploit_success:
-        return max(0.15, round(0.7 - penalty, 2))
+        return _clamp(0.7 - penalty)
     elif vuln_found:
-        return max(0.1, round(0.4 - penalty, 2))
+        return _clamp(0.4 - penalty)
     elif discovered:
-        return 0.15
-    return 0.0
+        return _clamp(0.15)
+    return _clamp(0.0)
 
 
 def grade_hard(state: dict) -> float:
@@ -123,18 +132,18 @@ def grade_hard(state: dict) -> float:
     penalty = _honeypot_penalty(state)
 
     if admin_login:
-        return max(0.3, round(1.0 - penalty, 2))
+        return _clamp(0.99 - penalty)
     elif creds_extracted:
-        return max(0.15, round(0.75 - penalty, 2))
+        return _clamp(0.75 - penalty)
     elif exploit_success:
-        return max(0.1, round(0.55 - penalty, 2))
+        return _clamp(0.55 - penalty)
     elif vuln_found:
-        return max(0.05, round(0.3 - penalty, 2))
+        return _clamp(0.3 - penalty)
     elif config_found:
-        return 0.15
+        return _clamp(0.15)
     elif has_recon:
-        return 0.05
-    return 0.0
+        return _clamp(0.05)
+    return _clamp(0.0)
 
 
 def grade_expert(state: dict) -> float:
@@ -160,15 +169,15 @@ def grade_expert(state: dict) -> float:
     penalty = _honeypot_penalty(state) * 1.5  # Heavier penalty on expert
 
     if admin_login:
-        return max(0.25, round(1.0 - penalty, 2))
+        return _clamp(0.99 - penalty)
     elif creds_extracted:
-        return max(0.12, round(0.7 - penalty, 2))
+        return _clamp(0.7 - penalty)
     elif has_token:
-        return max(0.1, round(0.4 - penalty, 2))
+        return _clamp(0.4 - penalty)
     elif low_priv:
-        return max(0.05, round(0.25 - penalty, 2))
+        return _clamp(0.25 - penalty)
     elif info_disclosure:
-        return 0.12
+        return _clamp(0.12)
     elif has_recon:
-        return 0.05
-    return 0.0
+        return _clamp(0.05)
+    return _clamp(0.0)
