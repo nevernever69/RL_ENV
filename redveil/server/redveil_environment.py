@@ -212,7 +212,7 @@ class RedVeilEnvironment(Environment):
             task_description=self._task.description,
             milestones_reached=[],
             done=False,
-            reward=0.0,
+            reward=0.01,
         )
 
     def step(
@@ -657,15 +657,15 @@ class RedVeilEnvironment(Environment):
     def _compute_reward(self) -> float:
         milestones = self._get_reached_milestones()
         if not milestones or not self._task:
-            return 0.0
+            return 0.01
 
-        reward = 0.0
+        reward = 0.01
         milestone_rewards = {name: val for name, val in self._task.milestones}
         for m in milestones:
             if m in milestone_rewards:
                 reward = max(reward, milestone_rewards[m])
 
-        return round(reward, 2)
+        return max(0.01, min(0.99, round(reward, 2)))
 
     @property
     def state(self) -> State:

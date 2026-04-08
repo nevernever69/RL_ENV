@@ -86,9 +86,15 @@ def log_start(task: str, env: str, model: str) -> None:
     print(f"[START] task={task} env={env} model={model}", flush=True)
 
 
+def _clamp_reward(r: float) -> float:
+    """Clamp reward to strictly (0, 1)."""
+    return max(0.01, min(0.99, r))
+
+
 def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
     error_val = error if error else "null"
     done_val = str(done).lower()
+    reward = _clamp_reward(reward)
     print(
         f"[STEP] step={step} action={action} reward={reward:.2f} done={done_val} error={error_val}",
         flush=True,
@@ -96,7 +102,7 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
 
 
 def log_end(success: bool, steps: int, rewards: List[float]) -> None:
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    rewards_str = ",".join(f"{_clamp_reward(r):.2f}" for r in rewards)
     print(
         f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
         flush=True,
@@ -193,7 +199,7 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
         obs = env.step(action)
 
         # Track reward
-        reward = obs.reward if obs.reward is not None else 0.0
+        reward = obs.reward if obs.reward is not None else 0.01
         rewards.append(reward)
 
         # Log step
@@ -219,8 +225,8 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     # Get final score
     game_state = env.get_game_state()
     score = grade_task(game_state)
-    score = min(max(score, 0.0), 1.0)
-    success = score > 0.0
+    score = min(max(score, 0.01), 0.99)
+    success = score > 0.01
 
     log_end(success=success, steps=step_num, rewards=rewards)
 
