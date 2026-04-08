@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openenv-redveil"
+version = "0.1.0"
+description = "RedVeil: An uncertainty-aware tool-use environment for training agentic AI"
+requires-python = ">=3.10"
+dependencies = [
+    "openenv-core[core]>=0.2.2",
+    "flask>=3.0.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+server = "redveil.server.app:main"
+
+[tool.setuptools]
+include-package-data = true
+packages = ["redveil", "redveil.server"]

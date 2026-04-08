@@ -2,5 +2,5 @@ spec_version: 1
 name: redveil
 type: space
 runtime: fastapi
-app: redveil.server.app:app
+app: server.app:app
 port: 7860
