@@ -24,6 +24,12 @@ import sys
 import time
 from typing import List
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, use env vars directly
+
 from openai import OpenAI
 
 # Direct imports for when running from project root
