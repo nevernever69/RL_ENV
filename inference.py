@@ -95,10 +95,10 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     )
 
 
-def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+def log_end(success: bool, steps: int, rewards: List[float]) -> None:
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(
-        f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
         flush=True,
     )
 
@@ -222,7 +222,7 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     score = min(max(score, 0.0), 1.0)
     success = score > 0.0
 
-    log_end(success=success, steps=step_num, score=score, rewards=rewards)
+    log_end(success=success, steps=step_num, rewards=rewards)
 
     return {
         "task_id": task_id,
@@ -237,9 +237,9 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
 
 def main():
     if not API_KEY:
-        print("WARNING: HF_TOKEN/API_KEY not set. Using fallback actions.", file=sys.stderr)
+        raise ValueError("HF_TOKEN environment variable is required")
 
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "dummy")
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
     env = RedVeilEnvironment()
 

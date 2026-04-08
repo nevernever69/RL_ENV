@@ -8,8 +8,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy project files
-COPY redveil /app/redveil
+COPY openenv.yaml /app/openenv.yaml
+COPY pyproject.toml /app/pyproject.toml
+COPY uv.lock /app/uv.lock
 COPY inference.py /app/inference.py
+COPY redveil /app/redveil
+COPY server /app/server
 
 # Install Python dependencies
 RUN pip install --no-cache-dir \
