@@ -42,8 +42,8 @@ from redveil.grader import grade_task
 # Configuration
 # ---------------------------------------------------------------------------
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY") or os.getenv("OPENAI_API_KEY", "")
 
 BENCHMARK = "redveil"
@@ -101,10 +101,11 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     )
 
 
-def log_end(success: bool, steps: int, rewards: List[float]) -> None:
+def log_end(success: bool, steps: int, rewards: List[float], score: float) -> None:
     rewards_str = ",".join(f"{_clamp_reward(r):.2f}" for r in rewards)
+    clamped_score = _clamp_reward(score)
     print(
-        f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} score={clamped_score:.2f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -228,7 +229,7 @@ def run_task(env: RedVeilEnvironment, client: OpenAI, task_id: str) -> dict:
     score = min(max(score, 0.01), 0.99)
     success = score > 0.01
 
-    log_end(success=success, steps=step_num, rewards=rewards)
+    log_end(success=success, steps=step_num, rewards=rewards, score=score)
 
     return {
         "task_id": task_id,
