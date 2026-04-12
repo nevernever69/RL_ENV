@@ -35,6 +35,8 @@ class EndpointInfo(Dict):
 class RedVeilObservation(Observation):
     """Observation from the RedVeil environment."""
 
+    # Override reward default from None to 0.01 to avoid 0.0 when model is default-instantiated
+    reward: Optional[float] = Field(default=0.01, description="Reward signal, strictly between 0 and 1")
     observation_text: str = Field(default="", description="Human-readable observation text (LLM-compatible)")
     budget_remaining: int = Field(default=0, description="Number of actions the agent can still take")
     task_id: str = Field(default="", description="Current task identifier")
